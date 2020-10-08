@@ -1,5 +1,4 @@
 venv
 .idea
 task1/dataset/*
-!task1/dataset/Training/Features_Variant_1.csv
-
+/**/*.zip

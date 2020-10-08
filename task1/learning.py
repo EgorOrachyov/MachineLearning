@@ -138,7 +138,7 @@ def compute_stat(data):
     return expectation, sd ** 0.5
 
 
-filepath = "dataset/Training/Features_Variant_1.csv"
+filepath = "features_var_1.csv"
 cv_k = 5
 learn_rate = 0.01
 iterations = 50
