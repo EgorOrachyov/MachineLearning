@@ -266,10 +266,11 @@ def compute_stat(data):
 pattern = "./dataset/combined_data_%s.txt"
 inputs = [pattern % (i + 1) for i in range(4)]
 prepared = "./dataset/prepared.csv"
-prepared0 = "./dataset/prepared0.csv"
-# prepare_data(inputs, prepared)
-# make_dummy(prepared, prepared0)
 
+# Pack data into single file
+prepare_data(inputs, prepared)
+
+# Load data into csr matrix and shuffle to get nice random effect
 X, y = load_prepared_and_shuffle(prepared)
 
 # Split into CV folds into several data files
@@ -279,6 +280,7 @@ learning_rate = 0.85 # 0.85
 mini_batch_size = 2 ** 13 # 11
 k = 2
 
+# Run learning for each fold (splits data internally)
 rmses, rmses_test, r2s, r2s_test = run_learning(X, y, cv_count, iterations, learning_rate, k, mini_batch_size)
 
 stats = [compute_stat(data) for data in [rmses, r2s, rmses_test, r2s_test]]
@@ -288,6 +290,7 @@ cells = [ ["RMSE (train)", "R2 (train)", "RMSE (test)", "R2 (test)"] ] + \
         [ [rmses[i], r2s[i], rmses_test[i], r2s_test[i]] for i in range(cv_count) ] + \
         [ [stats[j][i] for j in range(len(stats))] for i in range(2) ]
 
+# Create nice html table
 table = graph_objects.Table(header=dict(values=values), cells=dict(values=cells))
 figure = graph_objects.Figure(data=[table])
 figure.show()
