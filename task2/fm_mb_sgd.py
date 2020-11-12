@@ -83,7 +83,7 @@ def compute_yhat(X, m: Model):
     XV2 = XV.multiply(XV)
 
     X2 = X # lol, x is composed only from 1..1, X == X.multiply(X)
-    V2 = m.V.multiply(m.V)
+    V2 = m.V.multiply(m.V) # why?
 
     Y = X.dot(m.W) + m.w0 + 0.5 * (XV2 - X2.dot(V2)).sum(axis=1)
 
@@ -266,18 +266,20 @@ def compute_stat(data):
 pattern = "./dataset/combined_data_%s.txt"
 inputs = [pattern % (i + 1) for i in range(4)]
 prepared = "./dataset/prepared.csv"
+prepared0 = "./dataset/prepared0.csv"
 
 # Pack data into single file
-prepare_data(inputs, prepared)
+#prepare_data(inputs, prepared)
+make_dummy(prepared, prepared0)
 
 # Load data into csr matrix and shuffle to get nice random effect
-X, y = load_prepared_and_shuffle(prepared)
+X, y = load_prepared_and_shuffle(prepared0)
 
 # Split into CV folds into several data files
-cv_count = 4
+cv_count = 5
 iterations = 5
-learning_rate = 0.85 # 0.85
-mini_batch_size = 2 ** 13 # 11
+learning_rate = 0.5 # 0.85
+mini_batch_size = 8000 # 11
 k = 2
 
 # Run learning for each fold (splits data internally)
