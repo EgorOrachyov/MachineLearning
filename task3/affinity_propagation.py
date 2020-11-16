@@ -10,6 +10,12 @@ class Edge:
         self.a = 0
         self.r = 0
 
+    def __eq__(self, other):
+        return self.src == other.src and self.dst == other.dst
+
+    def __hash__(self):
+        return hash(self.src) + hash(self.dst)
+
     def __str__(self):
         return "(src={0},dst={1},s={2},a={3},r={4})".format(self.src, self.dst, self.s, self.a, self.r)
 
@@ -22,6 +28,18 @@ class Graph:
         self.edges = []
         self.m = 0
         self.n = 0
+
+    def finalize_build(self):
+        for i in range(self.n):
+            self.edges.append(Edge(i, i, -1.5 - random.uniform(0, 1e-4)))  # with noise
+            self.m += 1
+
+        self.ine = [[] for _ in range(self.n)]
+        self.oute = [[] for _ in range(self.n)]
+
+        for e in self.edges:
+            self.oute[e.src].append(e)
+            self.ine[e.dst].append(e)
 
 
 def get_data(path):
@@ -39,17 +57,7 @@ def get_data(path):
             graph.n = max(graph.n, i, j)
 
     graph.n += 1
-
-    for i in range(graph.n):
-        graph.edges.append(Edge(i, i, -1.5 - random.uniform(0, 1e-4)))  # with noise
-        graph.m += 1
-
-    graph.ine = [[] for _ in range(graph.n)]
-    graph.oute = [[] for _ in range(graph.n)]
-
-    for e in graph.edges:
-        graph.oute[e.src].append(e)
-        graph.ine[e.dst].append(e)
+    graph.finalize_build()
 
     return graph
 
@@ -59,8 +67,9 @@ def smooth(a, b, smoothing):
 
 
 def aff_prop(graph, max_iterations, max_stagnation, exp_smoothing):
-    print(graph.n)
-    print(graph.m)
+    print("Vertices count: ", graph.n)
+    print("Edges count", graph.m)
+
     stagnation = 0
 
     examplars = [-1 for _ in range(graph.n)]
@@ -119,7 +128,7 @@ def aff_prop(graph, max_iterations, max_stagnation, exp_smoothing):
                 something_changed = True
 
         if something_changed:
-            print("Something changed: %s" % len(set(examplars)))
+            print("-- Something changed: %s" % len(set(examplars)))
             stagnation = 0
         else:
             stagnation += 1
@@ -197,14 +206,24 @@ def compute_stat(data):
     return expectation, sd ** 0.5
 
 
+def link(edges: list, g: Graph, src, i, depth, factor):
+    if depth == 0:
+        newEdge = Edge(src, i, 1.0 / factor)
+        edges.append(newEdge)
+        return
+
+    for e in g.oute[i]:
+        link(edges, g, src, e.dst, depth - 1, factor / 0.5)
+
+
 edges_path = "./dataset/loc-gowalla_edges.txt"
 graph = get_data(edges_path)
 
 checkins_path = "./dataset/loc-gowalla_totalCheckins.txt"
 checkins = load_checkins(checkins_path)
 
-max_iterations = 50
-max_stagnation = 50
+max_iterations = 30
+max_stagnation = 40
 exp_smoothing = 0.9
 
 examplars = aff_prop(graph, max_iterations, max_stagnation, exp_smoothing)
@@ -215,7 +234,9 @@ count_to_suggest = 10
 suggestions_stat = compute_suggestions(examplars, checkins, count_to_validate, count_to_suggest)
 suggestions_exp, suggestions_sd = compute_stat(suggestions_stat)
 
+print("-========================================================================-")
 print("Total users count to compute check-ins recommendations: ", count_to_validate)
 print("Total check-ins count to recommend: ", count_to_suggest)
 print("Hits E: ", suggestions_exp)
 print("Hits SD: ", suggestions_sd)
+print("Average cluster size: ", graph.n / len(set(examplars)))

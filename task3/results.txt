@@ -1,0 +1,70 @@
+Vertices count:  196591
+Edges count 2097245
+Iteration: 0
+-- Something changed: 51826
+Iteration: 1
+-- Something changed: 46765
+Iteration: 2
+-- Something changed: 46565
+Iteration: 3
+-- Something changed: 46233
+Iteration: 4
+-- Something changed: 46020
+Iteration: 5
+-- Something changed: 45972
+Iteration: 6
+-- Something changed: 45677
+Iteration: 7
+-- Something changed: 45651
+Iteration: 8
+-- Something changed: 45610
+Iteration: 9
+-- Something changed: 45501
+Iteration: 10
+-- Something changed: 45323
+Iteration: 11
+-- Something changed: 44838
+Iteration: 12
+-- Something changed: 43289
+Iteration: 13
+-- Something changed: 43202
+Iteration: 14
+-- Something changed: 43153
+Iteration: 15
+-- Something changed: 43130
+Iteration: 16
+-- Something changed: 43111
+Iteration: 17
+-- Something changed: 43085
+Iteration: 18
+-- Something changed: 43053
+Iteration: 19
+-- Something changed: 43027
+Iteration: 20
+-- Something changed: 42973
+Iteration: 21
+-- Something changed: 42895
+Iteration: 22
+-- Something changed: 42853
+Iteration: 23
+-- Something changed: 42818
+Iteration: 24
+-- Something changed: 42782
+Iteration: 25
+-- Something changed: 42751
+Iteration: 26
+-- Something changed: 42722
+Iteration: 27
+-- Something changed: 42699
+Iteration: 28
+-- Something changed: 42683
+Iteration: 29
+-- Something changed: 42658
+-========================================================================-
+Total users count to compute check-ins recommendations:  1000
+Total check-ins count to recommend:  10
+Hits E:  0.045200000000000067
+Hits SD:  0.11016787190465285
+Average cluster size:  4.608537671714567
+
+Process finished with exit code 0
