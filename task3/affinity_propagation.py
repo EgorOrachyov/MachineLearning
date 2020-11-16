@@ -32,7 +32,7 @@ def get_data(path):
             ids = line.replace('\n', '').split('\t')
             i = int(ids[0])
             j = int(ids[1])
-            s = 1.0 + random.uniform(0, 0.5) # random.uniform(0, 1) * 1e-16
+            s = 1.0 + random.uniform(0, 1e-4) # with noise
 
             graph.edges.append(Edge(i, j, s))
             graph.m += 1
@@ -41,7 +41,7 @@ def get_data(path):
     graph.n += 1
 
     for i in range(graph.n):
-        graph.edges.append(Edge(i, i, random.uniform(-25, -15)))  # todo
+        graph.edges.append(Edge(i, i, -1.5 - random.uniform(0, 1e-4)))  # with noise
         graph.m += 1
 
     graph.ine = [[] for _ in range(graph.n)]
@@ -130,13 +130,92 @@ def aff_prop(graph, max_iterations, max_stagnation, exp_smoothing):
     return examplars
 
 
+def load_checkins(path):
+    checkins = dict()
+
+    with open(path, 'r') as datafile:
+        for line in datafile.readlines():
+            dt = line.replace('\n', '').split('\t')
+
+            user_id = int(dt[0])
+            location_id = int(dt[4])
+
+            if user_id in checkins:
+                checkins[user_id].append(location_id)
+            else:
+                checkins[user_id] = [location_id]
+
+    return checkins
+
+
+def compute_suggestions(examplars, checkins, count_to_validate, count_to_suggest):
+    users = random.sample(checkins.keys(), count_to_validate)
+
+    stat = []
+
+    for user in users:
+        cluster = examplars[user]
+        users_in_cluster = [friend_id for friend_id in range(len(examplars)) if examplars[friend_id] == cluster and friend_id != user]
+
+        locations = dict()
+
+        for friend in users_in_cluster:
+            if friend in checkins:
+                for check in checkins[friend]:
+                    if check in locations:
+                        locations[check] += 1
+                    else:
+                        locations[check] = 1
+
+        locations = sorted(locations.items(), key=lambda p: p[1])
+        locations.reverse()
+
+        top = locations[0:min(count_to_suggest, len(locations))]
+
+        hits = 0
+
+        for (k,v) in top:
+            if k in checkins[user]:
+                hits += 1.0 / count_to_suggest
+
+        stat.append(hits)
+
+    return stat
+
+
+def compute_stat(data):
+    n = len(data)
+    expectation = 0.0
+
+    for d in data:
+        expectation += d / float(n)
+
+    sd = 0.0
+    for d in data:
+        sd += ((d - expectation) ** 2) / float(n)
+
+    return expectation, sd ** 0.5
+
+
 edges_path = "./dataset/loc-gowalla_edges.txt"
 graph = get_data(edges_path)
 
-max_iterations = 100
+checkins_path = "./dataset/loc-gowalla_totalCheckins.txt"
+checkins = load_checkins(checkins_path)
+
+max_iterations = 50
 max_stagnation = 50
-exp_smoothing = 0.6
+exp_smoothing = 0.9
 
 examplars = aff_prop(graph, max_iterations, max_stagnation, exp_smoothing)
-as_set = set(examplars)
-print("======================>", len(as_set))
+
+count_to_validate = 1000
+count_to_suggest = 10
+
+suggestions_stat = compute_suggestions(examplars, checkins, count_to_validate, count_to_suggest)
+suggestions_exp, suggestions_sd = compute_stat(suggestions_stat)
+
+print("Total users count to compute check-ins recommendations: ", count_to_validate)
+print("Total check-ins count to recommend: ", count_to_suggest)
+print("Hits E: ", suggestions_exp)
+print("Hits SD: ", suggestions_sd)
